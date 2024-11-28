@@ -9,16 +9,26 @@ export function useTemperatureSensor(port: SerialPort | null) {
     if (!port) return
 
     const readTemperature = async () => {
+      const textDecoder = new TextDecoder()
+      let buffer = ''
+
       while (port.readable) {
         const reader = port.readable.getReader()
         try {
           while (true) {
             const { value, done } = await reader.read()
             if (done) break
-            const decoded = new TextDecoder().decode(value)
-            const temp = parseFloat(decoded)
-            if (!isNaN(temp)) {
-              setTemperature(temp)
+            if (value) {
+              buffer += textDecoder.decode(value, { stream: true })
+              const lines = buffer.split('\n')
+              buffer = lines.pop() || ''
+              for (const line of lines) {
+                const temp = parseFloat(line.trim())
+                if (!isNaN(temp)) {
+                  setTemperature(temp)
+                  console.log(temp)
+                }
+              }
             }
           }
         } catch (err) {

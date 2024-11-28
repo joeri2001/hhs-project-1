@@ -1,6 +1,6 @@
 'use client';
 
-import { useSerialConnection } from './lib/useserialconnection';
+import { useSerialConnection } from './lib/useSerialConnection';
 import { useTemperatureSensor } from './sensors/useTemperatureSensor';
 
 export default function MicrobitReader() {
