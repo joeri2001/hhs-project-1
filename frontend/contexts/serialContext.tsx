@@ -1,7 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useEffect } from 'react';
-import { useSerialConnection } from '@/components/microbit/lib/useSerialConnection';
+import React, { createContext, useContext } from "react";
+import { useSerialConnection } from "@/components/microbit/lib/useSerialConnection";
 
 interface SerialContextType {
   isConnected: boolean;
@@ -16,12 +16,6 @@ const SerialContext = createContext<SerialContextType | undefined>(undefined);
 export function SerialProvider({ children }: { children: React.ReactNode }) {
   const serialConnection = useSerialConnection();
 
-  useEffect(() => {
-    return () => {
-      serialConnection.closePort();
-    };
-  }, []);
-
   return (
     <SerialContext.Provider value={serialConnection}>
       {children}
@@ -32,8 +26,7 @@ export function SerialProvider({ children }: { children: React.ReactNode }) {
 export function useSerial() {
   const context = useContext(SerialContext);
   if (context === undefined) {
-    throw new Error('useSerial must be used within a SerialProvider');
+    throw new Error("useSerial must be used within a SerialProvider");
   }
   return context;
 }
-

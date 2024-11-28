@@ -31,9 +31,7 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <NavBar />
-        <SerialProvider>
-          {children}
-        </SerialProvider>
+        <SerialProvider>{children}</SerialProvider>
       </body>
     </html>
   );

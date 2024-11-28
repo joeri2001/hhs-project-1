@@ -38,14 +38,19 @@ export function useSerialConnection() {
       setIsConnected(true);
       setError(null);
       return selectedPort;
-    } catch (err) {
+    } catch {
       setError(
         "Failed to connect to the micro:bit. Make sure it's connected via USB and you have the correct permissions."
       );
-      console.error("Serial connection error:", err);
       return null;
     }
   };
 
-  return { isConnected, error, port: portRef.current, connectToMicrobit, closePort };
+  return {
+    isConnected,
+    error,
+    port: portRef.current,
+    connectToMicrobit,
+    closePort,
+  };
 }
