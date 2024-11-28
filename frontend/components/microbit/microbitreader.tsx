@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import { useSerialConnection } from './lib/useSerialConnection';
-import { useTemperatureSensor } from './sensors/useTemperatureSensor';
+import { useSerialConnection } from "./lib/useSerialConnection";
+import { useTemperatureSensor } from "./sensors/useTemperatureSensor";
 
 export default function MicrobitReader() {
-  const { isConnected, error, port, connectToMicrobit } = useSerialConnection()
-  const temperature = useTemperatureSensor(port)
+  const { isConnected, error, port, connectToMicrobit } = useSerialConnection();
+  const temperature = useTemperatureSensor(port);
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6 max-w-sm mx-auto">
@@ -22,11 +22,11 @@ export default function MicrobitReader() {
       {isConnected && (
         <div>
           <p className="text-lg font-semibold">
-            Current Temperature: {temperature !== null ? `${temperature}°C` : 'Reading...'}
+            Current Temperature:{" "}
+            {temperature !== null ? `${temperature}°C` : "Reading..."}
           </p>
         </div>
       )}
     </div>
-  )
+  );
 }
-

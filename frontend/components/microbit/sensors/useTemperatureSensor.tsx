@@ -1,46 +1,46 @@
-'use client'
+"use client";
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect } from "react";
 
 export function useTemperatureSensor(port: SerialPort | null) {
-  const [temperature, setTemperature] = useState<number | null>(null)
+  const [temperature, setTemperature] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!port) return
+    if (!port) return;
 
     const readTemperature = async () => {
-      const textDecoder = new TextDecoder()
-      let buffer = ''
+      const textDecoder = new TextDecoder();
+      let buffer = "";
 
       while (port.readable) {
-        const reader = port.readable.getReader()
+        const reader = port.readable.getReader();
         try {
           while (true) {
-            const { value, done } = await reader.read()
-            if (done) break
+            const { value, done } = await reader.read();
+            if (done) break;
             if (value) {
-              buffer += textDecoder.decode(value, { stream: true })
-              const lines = buffer.split('\n')
-              buffer = lines.pop() || ''
+              buffer += textDecoder.decode(value, { stream: true });
+              const lines = buffer.split("\n");
+              buffer = lines.pop() || "";
               for (const line of lines) {
-                const temp = parseFloat(line.trim())
+                const temp = parseFloat(line.trim());
                 if (!isNaN(temp)) {
-                  setTemperature(temp)
-                  console.log(temp)
+                  setTemperature(temp);
+                  console.log(temp);
                 }
               }
             }
           }
         } catch (err) {
-          console.error('Error reading from serial port:', err)
+          console.error("Error reading from serial port:", err);
         } finally {
-          reader.releaseLock()
+          reader.releaseLock();
         }
       }
-    }
+    };
 
-    readTemperature()
-  }, [port])
+    readTemperature();
+  }, [port]);
 
-  return temperature
+  return temperature;
 }
