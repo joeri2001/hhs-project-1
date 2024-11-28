@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 
 export function useSerialConnection() {
   const [isConnected, setIsConnected] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [port, setPort] = useState<SerialPort | null>(null);
+  const portRef = useRef<SerialPort | null>(null);
+  const readerRef = useRef<ReadableStreamDefaultReader | null>(null);
 
   useEffect(() => {
     if (!("serial" in navigator)) {
@@ -13,17 +14,27 @@ export function useSerialConnection() {
     }
 
     return () => {
-      if (port) {
-        port.close().catch(console.error);
-      }
+      closePort();
     };
-  }, [port]);
+  }, []);
+
+  const closePort = async () => {
+    if (readerRef.current) {
+      await readerRef.current.cancel();
+      readerRef.current = null;
+    }
+    if (portRef.current) {
+      await portRef.current.close();
+      portRef.current = null;
+    }
+    setIsConnected(false);
+  };
 
   const connectToMicrobit = async () => {
     try {
       const selectedPort = await navigator.serial.requestPort();
       await selectedPort.open({ baudRate: 115200 });
-      setPort(selectedPort);
+      portRef.current = selectedPort;
       setIsConnected(true);
       setError(null);
       return selectedPort;
@@ -36,5 +47,5 @@ export function useSerialConnection() {
     }
   };
 
-  return { isConnected, error, port, connectToMicrobit };
+  return { isConnected, error, port: portRef.current, connectToMicrobit, closePort };
 }
