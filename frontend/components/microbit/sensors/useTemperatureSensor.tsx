@@ -26,7 +26,6 @@ export function useTemperatureSensor(port: SerialPort | null) {
                 const temp = parseFloat(line.trim());
                 if (!isNaN(temp)) {
                   setTemperature(temp);
-                  console.log(temp);
                 }
               }
             }
