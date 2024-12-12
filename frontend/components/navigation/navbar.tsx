@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import PopUpButton from "../popupbutton/popupbutton";
 
 const navItems = [
   { href: "/", label: "Home" },
@@ -35,6 +36,9 @@ export default function NavBar() {
                   {item.label}
                 </Link>
               ))}
+              <div>
+                <PopUpButton />
+              </div>
             </div>
           </div>
         </div>
