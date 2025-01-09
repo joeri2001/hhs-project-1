@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext } from "react";
-import { useSerialConnection } from "@/components/microbit/lib/useSerialConnection";
+import { useSerialConnection } from "@/components/microbit/lib/useserialconnection";
 
 interface SerialContextType {
   isConnected: boolean;
