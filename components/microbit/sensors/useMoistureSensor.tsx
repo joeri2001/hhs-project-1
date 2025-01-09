@@ -2,13 +2,13 @@
 
 import { useState, useEffect } from "react";
 
-export function useTemperatureSensor(port: SerialPort | null) {
-  const [temperature, setTemperature] = useState<number | null>(null);
+export function useMoistureSensor(port: SerialPort | null) {
+  const [moisture, setMoisture] = useState<number | null>(null);
 
   useEffect(() => {
     if (!port) return;
 
-    const readTemperature = async () => {
+    const readMoisture = async () => {
       const textDecoder = new TextDecoder();
       let buffer = "";
 
@@ -23,10 +23,10 @@ export function useTemperatureSensor(port: SerialPort | null) {
               const lines = buffer.split("\n");
               buffer = lines.pop() || "";
               for (const line of lines) {
-                if (line.startsWith("temperature:")) {
-                  const temp = parseFloat(line.replace("temperature:", "").trim());
-                  if (!isNaN(temp)) {
-                    setTemperature(temp);
+                if (line.startsWith("moisture level:")) {
+                  const moisture = parseFloat(line.replace("moisture level:", "").trim());
+                  if (!isNaN(moisture)) {
+                    setMoisture(moisture);
                   }
                 }
               }
@@ -40,8 +40,8 @@ export function useTemperatureSensor(port: SerialPort | null) {
       }
     };
 
-    readTemperature();
+    readMoisture();
   }, [port]);
 
-  return temperature;
+  return moisture;
 }
