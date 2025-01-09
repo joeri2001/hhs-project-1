@@ -22,13 +22,10 @@ export default function MicrobitReader() {
       {isConnected && (
         <div>
           <p className="text-lg font-semibold">
-            Current Moist:{" "}
-            {moisture !== null ? `${moisture}` : "Reading..."}
+            Current Moist: {moisture !== null ? `${moisture}` : "Reading..."}
           </p>
         </div>
       )}
     </div>
-
-    
   );
 }

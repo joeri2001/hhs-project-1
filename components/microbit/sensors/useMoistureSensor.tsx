@@ -24,7 +24,9 @@ export function useMoistureSensor(port: SerialPort | null) {
               buffer = lines.pop() || "";
               for (const line of lines) {
                 if (line.startsWith("moisture level:")) {
-                  const moisture = parseFloat(line.replace("moisture level:", "").trim());
+                  const moisture = parseFloat(
+                    line.replace("moisture level:", "").trim()
+                  );
                   if (!isNaN(moisture)) {
                     setMoisture(moisture);
                   }

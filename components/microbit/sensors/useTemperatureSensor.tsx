@@ -24,7 +24,9 @@ export function useTemperatureSensor(port: SerialPort | null) {
               buffer = lines.pop() || "";
               for (const line of lines) {
                 if (line.startsWith("temperature:")) {
-                  const temp = parseFloat(line.replace("temperature:", "").trim());
+                  const temp = parseFloat(
+                    line.replace("temperature:", "").trim()
+                  );
                   if (!isNaN(temp)) {
                     setTemperature(temp);
                   }
