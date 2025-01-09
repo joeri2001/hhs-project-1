@@ -23,13 +23,18 @@ export function useMoistureSensor(port: SerialPort | null) {
               const lines = buffer.split("\n");
               buffer = lines.pop() || "";
               for (const line of lines) {
-                if (line.startsWith("moisture level:")) {
+                if (line.startsWith("moisture")) {
                   const moisture = parseFloat(
-                    line.replace("moisture level:", "").trim()
+                    line.replace("moisture", "").trim()
                   );
                   if (!isNaN(moisture)) {
                     setMoisture(moisture);
                   }
+                }
+
+                if (line.startsWith("serial")) {
+                  const serialValue = line.replace("serial", "").trim();
+                  console.log("Serial:", serialValue);
                 }
               }
             }
