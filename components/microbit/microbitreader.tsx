@@ -22,7 +22,7 @@ export default function MicrobitReader() {
       {isConnected && (
         <div>
           <p className="text-lg font-semibold">
-            Current Temperature:{" "}
+            Current Moist:{" "}
             {moisture !== null ? `${moisture}` : "Reading..."}
           </p>
         </div>
