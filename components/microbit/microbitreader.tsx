@@ -5,7 +5,7 @@ import { useMoistureSensor } from "./sensors/useTestSensor";
 
 export default function MicrobitReader() {
   const { isConnected, error, port, connectToMicrobit } = useSerialConnection();
-  const moisture = useMoistureSensor(port);
+  const { moisture } = useMoistureSensor(port);
 
   return (
     <div className="bg-white shadow-md rounded-lg p-6 max-w-sm mx-auto">
