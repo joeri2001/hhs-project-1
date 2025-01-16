@@ -9,6 +9,15 @@ datasource db {
 }
 
 model Microbit {
-  id     Int    @id @default(autoincrement())
-  name   String
+  id                 Int        @id @default(autoincrement())
+  serial_number      String     @unique
+  moistures          Moisture[]
+}
+
+model Moisture {
+  id         Int      @id @default(autoincrement())
+  value      Float
+  timestamp  DateTime @default(now())
+  microbit   Microbit @relation(fields: [microbitId], references: [id])
+  microbitId Int
 }

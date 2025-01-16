@@ -1,7 +1,7 @@
 "use client";
 
 import { useSerialConnection } from "./lib/useserialconnection";
-import { useMoistureSensor } from "./sensors/useMoistureSensor";
+import { useMoistureSensor } from "./sensors/useTestSensor";
 
 export default function MicrobitReader() {
   const { isConnected, error, port, connectToMicrobit } = useSerialConnection();
