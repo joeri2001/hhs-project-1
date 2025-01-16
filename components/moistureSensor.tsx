@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from 'react';
-import { useMoistureSensor } from '../hooks/useMoistureSensor';
+import { useState } from "react";
+import { useMoistureSensor } from "../hooks/useMoistureSensor";
 
 export function MoistureSensor() {
   const [port, setPort] = useState<SerialPort | null>(null);
@@ -13,7 +13,7 @@ export function MoistureSensor() {
       await selectedPort.open({ baudRate: 115200 });
       setPort(selectedPort);
     } catch (err) {
-      console.error('Error connecting to device:', err);
+      console.error("Error connecting to device:", err);
     }
   };
 
@@ -26,4 +26,3 @@ export function MoistureSensor() {
     </div>
   );
 }
-

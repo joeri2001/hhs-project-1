@@ -51,22 +51,22 @@ export function useMoistureSensor(port: SerialPort | null) {
 
     const registerMicrobit = async (serialNumber: string) => {
       try {
-        const response = await fetch('/api/microbit', {
-          method: 'POST',
+        const response = await fetch("/api/microbit", {
+          method: "POST",
           headers: {
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
           body: JSON.stringify({ serial_number: serialNumber }),
         });
 
         if (!response.ok) {
-          throw new Error('Failed to register Microbit');
+          throw new Error("Failed to register Microbit");
         }
 
         const data = await response.json();
         setMicrobitId(data.microbit.id);
       } catch (error) {
-        console.error('Error registering Microbit:', error);
+        console.error("Error registering Microbit:", error);
       }
     };
 
@@ -75,4 +75,3 @@ export function useMoistureSensor(port: SerialPort | null) {
 
   return { moisture, microbitId };
 }
-

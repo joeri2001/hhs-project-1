@@ -1,5 +1,5 @@
-import { NextResponse } from 'next/server';
-import { PrismaClient } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -19,8 +19,10 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ microbit });
   } catch (error) {
-    console.error('Error processing Microbit:', error);
-    return NextResponse.json({ error: 'Error processing Microbit' }, { status: 500 });
+    console.error("Error processing Microbit:", error);
+    return NextResponse.json(
+      { error: "Error processing Microbit" },
+      { status: 500 }
+    );
   }
 }
-
