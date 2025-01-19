@@ -1,16 +1,30 @@
 "use client";
 
 import { useSerialConnection } from "./lib/useserialconnection";
-import { useMoistureSensor } from "./sensors/useTestSensor";
+import { useMoistureSensor } from "@/hooks/useMoistureSensor";
+import { MoistureReadings } from "./moisturereadings";
 
 export default function MicrobitReader() {
-  const { isConnected, error, port, connectToMicrobit } = useSerialConnection();
-  const { moisture } = useMoistureSensor(port);
+  const {
+    isConnected,
+    error: connectionError,
+    port,
+    connectToMicrobit,
+  } = useSerialConnection();
+  const {
+    moisture,
+    microbitSerialNumber,
+    isMicrobitRegistered,
+    error: sensorError,
+  } = useMoistureSensor(port);
 
   return (
-    <div className="bg-white shadow-md rounded-lg p-6 max-w-sm mx-auto">
+    <div className="bg-white shadow-md rounded-lg p-6 max-w-md mx-auto">
       <h2 className="text-xl font-semibold mb-4">Moisture sensor</h2>
-      {error && <p className="text-red-500 mb-4">{error}</p>}
+      {connectionError && (
+        <p className="text-red-500 mb-4">{connectionError}</p>
+      )}
+      {sensorError && <p className="text-red-500 mb-4">{sensorError}</p>}
       {!isConnected && (
         <button
           onClick={connectToMicrobit}
@@ -21,9 +35,22 @@ export default function MicrobitReader() {
       )}
       {isConnected && (
         <div>
+          {isMicrobitRegistered && microbitSerialNumber ? (
+            <p className="text-green-600 font-semibold mb-2">
+              Connected Microbit Serial Number: {microbitSerialNumber}
+            </p>
+          ) : (
+            <p className="text-yellow-600 font-semibold mb-2">
+              Microbit connected, waiting for registration...
+            </p>
+          )}
           <p className="text-lg font-semibold">
-            Current Moist: {moisture !== null ? `${moisture}` : "Reading..."}
+            Current Moisture:{" "}
+            {moisture !== null ? `${moisture.toFixed(2)}` : "Reading..."}
           </p>
+          {microbitSerialNumber && (
+            <MoistureReadings serialNumber={microbitSerialNumber} />
+          )}
         </div>
       )}
     </div>

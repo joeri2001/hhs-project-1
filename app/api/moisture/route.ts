@@ -1,34 +1,41 @@
 import { NextResponse } from "next/server";
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/lib/prisma";
 
-const prisma = new PrismaClient();
-
-export async function POST(req: Request) {
+export async function POST(request: Request) {
   try {
-    const { microbit_id, average_moisture } = await req.json();
+    const { serial_number, average_moisture } = await request.json();
 
-    if (!microbit_id || average_moisture === undefined) {
+    if (!serial_number || average_moisture === undefined) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Serial number and average moisture are required" },
         { status: 400 }
+      );
+    }
+
+    const microbit = await prisma.microbit.findUnique({
+      where: { serial_number: serial_number },
+    });
+
+    if (!microbit) {
+      return NextResponse.json(
+        { error: "Microbit not found" },
+        { status: 404 }
       );
     }
 
     const moisture = await prisma.moisture.create({
       data: {
         value: average_moisture,
-        microbitId: microbit_id,
+        microbitId: microbit.id,
       },
     });
 
     return NextResponse.json({ moisture });
   } catch (error) {
-    console.error("Error storing moisture:", error);
+    console.error("Error saving moisture data:", error);
     return NextResponse.json(
-      { error: "Error storing moisture" },
+      { error: "Failed to save moisture data" },
       { status: 500 }
     );
-  } finally {
-    await prisma.$disconnect();
   }
 }

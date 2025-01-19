@@ -2,22 +2,48 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 
-interface MoistureReading {
+export interface MoistureReading {
+  id: number;
   value: number;
-  timestamp: number;
+  timestamp: string;
 }
 
-export function useMoistureSensor(port: SerialPort | null) {
+export interface UseMoistureSensorResult {
+  moisture: number | null;
+  microbitSerialNumber: string | null;
+  isMicrobitRegistered: boolean;
+  moistureReadings: MoistureReading[];
+  fetchMoistureReadings: () => Promise<void>;
+  error: string | null;
+}
+
+export function useMoistureSensor(
+  port: SerialPort | null
+): UseMoistureSensorResult {
   const [moisture, setMoisture] = useState<number | null>(null);
-  const [microbitId, setMicrobitId] = useState<number | null>(null);
+  const [microbitSerialNumber, setMicrobitSerialNumber] = useState<
+    string | null
+  >(null);
   const [isMicrobitRegistered, setIsMicrobitRegistered] = useState(false);
-  const moistureReadings = useRef<MoistureReading[]>([]);
+  const [moistureReadings, setMoistureReadings] = useState<MoistureReading[]>(
+    []
+  );
+  const [error, setError] = useState<string | null>(null);
+  const accumulatedReadings = useRef<number[]>([]);
   const lastAverageSent = useRef<number>(0);
   const readerRef = useRef<ReadableStreamDefaultReader<Uint8Array> | null>(
     null
   );
+  const registrationAttempts = useRef<number>(0);
 
   const registerMicrobit = useCallback(async (serialNumber: string) => {
+    if (registrationAttempts.current >= 3) {
+      setError(
+        "Max registration attempts reached. Please reconnect the Microbit."
+      );
+      return;
+    }
+
     try {
       console.log(
         "Attempting to register Microbit with serial number:",
@@ -37,75 +63,86 @@ export function useMoistureSensor(port: SerialPort | null) {
 
       const data = await response.json();
       console.log("Microbit registered successfully. Received data:", data);
-      setMicrobitId(data.microbit.id);
+      setMicrobitSerialNumber(serialNumber);
       setIsMicrobitRegistered(true);
+      setError(null);
+      registrationAttempts.current = 0;
     } catch (error) {
       console.error("Error registering Microbit:", error);
+      setIsMicrobitRegistered(false);
+      setError("Failed to register Microbit. Retrying...");
+      registrationAttempts.current++;
+
+      // Retry registration after a delay
+      setTimeout(() => registerMicrobit(serialNumber), 5000);
     }
   }, []);
 
-  const sendAverageMoisture = useCallback(
-    async (averageMoisture: number) => {
-      if (!microbitId) {
-        console.error("Cannot send average moisture: microbitId is null");
-        return;
-      }
+  const sendAverageMoisture = useCallback(async () => {
+    if (!microbitSerialNumber || accumulatedReadings.current.length === 0) {
+      return;
+    }
 
-      try {
-        console.log(
-          `Sending average moisture: ${averageMoisture} for Microbit ID: ${microbitId}`
-        );
-        const response = await fetch("/api/moisture", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            microbit_id: microbitId,
-            average_moisture: averageMoisture,
-          }),
-        });
+    const averageMoisture =
+      accumulatedReadings.current.reduce((a, b) => a + b, 0) /
+      accumulatedReadings.current.length;
+    accumulatedReadings.current = []; // Reset accumulated readings
 
-        if (!response.ok) {
-          throw new Error("Failed to send average moisture");
-        }
-
-        console.log("Average moisture sent successfully");
-      } catch (error) {
-        console.error("Error sending average moisture:", error);
-      }
-    },
-    [microbitId]
-  );
-
-  const addMoistureReading = useCallback(
-    (value: number) => {
-      const now = Date.now();
-      moistureReadings.current.push({ value, timestamp: now });
-
-      moistureReadings.current = moistureReadings.current.filter(
-        (reading) => now - reading.timestamp <= 60000
+    try {
+      console.log(
+        `Sending average moisture: ${averageMoisture.toFixed(2)} for Microbit Serial Number: ${microbitSerialNumber}`
       );
+      const response = await fetch("/api/moisture", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          serial_number: microbitSerialNumber,
+          average_moisture: averageMoisture,
+        }),
+      });
 
-      if (now - lastAverageSent.current >= 60000 && isMicrobitRegistered) {
-        const average = calculateAverageMoisture();
-        if (average !== null) {
-          sendAverageMoisture(average);
-          lastAverageSent.current = now;
-        }
+      if (!response.ok) {
+        throw new Error("Failed to send average moisture");
       }
-    },
-    [isMicrobitRegistered, sendAverageMoisture]
-  );
 
-  const calculateAverageMoisture = () => {
-    if (moistureReadings.current.length === 0) return null;
-    const sum = moistureReadings.current.reduce(
-      (acc, reading) => acc + reading.value,
-      0
-    );
-    return sum / moistureReadings.current.length;
-  };
+      console.log("Average moisture sent successfully");
+      lastAverageSent.current = Date.now();
+    } catch (error) {
+      console.error("Error sending average moisture:", error);
+      setError("Failed to send average moisture. Will retry on next reading.");
+    }
+  }, [microbitSerialNumber]);
+
+  const fetchMoistureReadings = useCallback(async () => {
+    if (!microbitSerialNumber) {
+      console.error(
+        "Cannot fetch moisture readings: microbitSerialNumber is null"
+      );
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `/api/getMoisture?serialNumber=${microbitSerialNumber}`
+      );
+      if (!response.ok) {
+        throw new Error("Failed to fetch moisture readings");
+      }
+      const data = await response.json();
+      setMoistureReadings(data.moistureReadings);
+    } catch (error) {
+      console.error("Error fetching moisture readings:", error);
+      setError("Failed to fetch moisture readings. Please try again.");
+    }
+  }, [microbitSerialNumber]);
+
+  useEffect(() => {
+    if (microbitSerialNumber) {
+      fetchMoistureReadings();
+    }
+  }, [microbitSerialNumber, fetchMoistureReadings]);
 
   useEffect(() => {
     if (!port) return;
@@ -123,7 +160,19 @@ export function useMoistureSensor(port: SerialPort | null) {
           const moisture = parseFloat(line.replace("moisture", "").trim());
           if (!isNaN(moisture)) {
             setMoisture(moisture);
-            addMoistureReading(moisture);
+            if (isMicrobitRegistered && microbitSerialNumber) {
+              accumulatedReadings.current.push(moisture);
+
+              // Check if it's time to send the average (once per minute)
+              if (Date.now() - lastAverageSent.current >= 60000) {
+                sendAverageMoisture();
+              }
+            } else {
+              console.log(
+                "Skipping moisture accumulation: Microbit not registered or Serial Number is null"
+              );
+              setError("Microbit not registered. Waiting for registration...");
+            }
           }
         } else if (line.startsWith("serial")) {
           const serialNumber = line.replace("serial", "").trim();
@@ -149,6 +198,7 @@ export function useMoistureSensor(port: SerialPort | null) {
           }
         } catch (error) {
           console.error("Error reading from serial port:", error);
+          setError("Error reading from Microbit. Please reconnect the device.");
         } finally {
           if (readerRef.current) {
             try {
@@ -177,7 +227,20 @@ export function useMoistureSensor(port: SerialPort | null) {
       }
       readerRef.current = null;
     };
-  }, [port, registerMicrobit, addMoistureReading]);
+  }, [
+    port,
+    registerMicrobit,
+    sendAverageMoisture,
+    isMicrobitRegistered,
+    microbitSerialNumber,
+  ]);
 
-  return { moisture, microbitId, isMicrobitRegistered };
+  return {
+    moisture,
+    microbitSerialNumber,
+    isMicrobitRegistered,
+    moistureReadings,
+    fetchMoistureReadings,
+    error,
+  };
 }

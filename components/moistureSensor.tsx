@@ -5,7 +5,7 @@ import { useMoistureSensor } from "../hooks/useMoistureSensor";
 
 export function MoistureSensor() {
   const [port, setPort] = useState<SerialPort | null>(null);
-  const { moisture, microbitId } = useMoistureSensor(port);
+  const { moisture, microbitSerialNumber } = useMoistureSensor(port);
 
   const connectToDevice = async () => {
     try {
@@ -21,7 +21,9 @@ export function MoistureSensor() {
     <div>
       <button onClick={connectToDevice}>Connect to Microbit</button>
       {port && <p>Connected to Microbit</p>}
-      {microbitId && <p>Microbit ID: {microbitId}</p>}
+      {microbitSerialNumber && (
+        <p>Microbit Serial Number: {microbitSerialNumber}</p>
+      )}
       {moisture !== null && <p>Moisture: {moisture}</p>}
     </div>
   );
