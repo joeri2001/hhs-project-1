@@ -4,10 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import PopUpButton from "../popupbutton/popupbutton";
 
-const navItems = [
-  { href: "/", label: "Home" },
-  { href: "/stats", label: "Datapagina" },
-];
+const navItems = [{ href: "/", label: "Home" }];
 
 export default function NavBar() {
   const pathname = usePathname();
